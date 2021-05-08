@@ -58,25 +58,28 @@ def bulbaParse(message):
           return('Invalid link.')
         else:
           try:
-            typeIndex = wikiResponse.text.index('|type=')
-            searchableText = wikiResponse.text[typeIndex:wikiResponse.text.index('{{PokémoncardInfobox/Footer')-1]
-            responseText = '{{cardlist/entry|cardname=' + tcgID(message[4:]) + searchableText[:searchableText.index('\n')]
-            searchableText = searchableText[searchableText.index('{{PokémoncardInfobox/Expansion'):].replace('{{TCG|','').replace('{{rar|','') #not replacing '}' to '' here because of -1 index search
+            boxIndex = wikiResponse.text.index('ardInfobox/Expansion')
+            cardBox = wikiResponse.text[wikiResponse.text[:boxIndex].rindex('{')+1:boxIndex]+'ardInfobox' #TCGEnergyCardInfobox, TCGTrainerCardInfobox
+            
+            searchableText = ('{{' + cardBox+wikiResponse.text[boxIndex+10:wikiResponse.text.rindex(cardBox+'/Footer')-1]).replace('|class=','|type=').replace('{{TCG|','').replace('{{rar|','').split('{{'+cardBox+'/Expansion')[1:] #not replacing '}' to '' here because of -1 index search later
+            boxIndex = searchableText[0].find('|type=')+6
+            realType = searchableText[0][boxIndex:searchableText[0][boxIndex:].find('|')+boxIndex]
+            responseText = '{{cardlist/entry|cardname=' + tcgID(message[4:]) + '|type=' + ('Energy|energy=' if cardBox == 'TCGEnergyCardInfobox' else '') + realType
           except:
             return('💥')
 
           setCounter = 1
           setNumText = ''
-          for txtArray in searchableText.split('{{PokémoncardInfobox/Expansion')[1:]: #[1:] skips empty part
+          for txtArray in searchableText:
             enSetIndex = txtArray.find('|expansion=')
             jpSetIndex = txtArray.find('|jpexpansion=')
             if jpSetIndex == -1:
                 jpSetIndex = txtArray.find('|jphalfdeck=')
                 
             if enSetIndex != -1 and (jpSetIndex == -1 or enSetIndex < jpSetIndex):
-              responseText += txtArray[enSetIndex:jpSetIndex-1].replace('|expansion','|enset' + setNumText).replace('|rarity','|enrarity' + setNumText).replace('|cardno','|ennum' + setNumText).replace('}','')
+              responseText += txtArray[enSetIndex:jpSetIndex].replace('|expansion','|enset' + setNumText).replace('|rarity','|enrarity' + setNumText).replace('|cardno','|ennum' + setNumText).replace('}','')
             if jpSetIndex != -1 and enSetIndex < jpSetIndex:
-              responseText += txtArray[jpSetIndex:-1].replace('|jpexpansion','|jpset' + setNumText).replace('|jphalfdeck','|jpset' + setNumText).replace('|jprarity','|jprarity' + setNumText).replace('|jpcardno','|jpnum' + setNumText).replace('}','')
+              responseText += txtArray[jpSetIndex:-2].replace('|jpexpansion','|jpset' + setNumText).replace('|jphalfdeck','|jpset' + setNumText).replace('|jprarity','|jprarity' + setNumText).replace('|jpcardno','|jpnum' + setNumText).replace('}','')
             
             setCounter += 1
             setNumText = str(setCounter)
