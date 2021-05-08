@@ -11,4 +11,4 @@ Formatting helper for Bulbapedia templates.
 
 - `pip install requests`
 - Bot: `pip install discord` and `pip install dotenv`
-- Use `run_local.py -help` or `-help` in a server channel to see commands.
+- Use `-help` to see other commands.
