@@ -10,5 +10,5 @@ Formatting helper for Bulbapedia templates.
 # Setup
 
 - `pip install requests`
-- Bot: `pip install discord` and `pip install dotenv`
+- Bot: `pip install discord`
 - Use `-help` to see other commands.
