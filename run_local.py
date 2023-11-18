@@ -3,6 +3,7 @@ import os #copy
 
 commandInput = None
 prefixInput = ''
+print(bulbapal.bulbaParse('-help'))
 while commandInput != 'z':
     commandInput = input("Enter a command, type 'prefix' for automatic prefix or 'z' to quit:\n"+prefixInput)
     if commandInput == 'prefix':
