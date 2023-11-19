@@ -3,10 +3,12 @@ from urllib.parse import unquote, quote
 import pyperclip
 import re
 
-wikiResponse = requests.get(f'https://bulbapedia.bulbagarden.net/w/index.php?title=List_of_Pok%C3%A9mon_Trading_Card_Game_expansions&action=raw').text
 EXPANSIONLIST = []
-for wikiExpansion in re.finditer(r'\| {{TCG\|(.+?)(\|.+?)?}}[\s\S]+?\| ([\w\d]+?)\n\|(-|})', wikiResponse):
-  EXPANSIONLIST.append([wikiExpansion.group(1), wikiExpansion.group(3)])
+try: wikiResponse = requests.get(f'https://bulbapedia.bulbagarden.net/w/index.php?title=List_of_Pok%C3%A9mon_Trading_Card_Game_expansions&action=raw').text
+except: pass
+else:
+  for wikiExpansion in re.finditer(r'\| {{TCG\|(.+?)(\|.+?)?}}[\s\S]+?\| ([\w\d]+?)\n\|(-|})', wikiResponse):
+    EXPANSIONLIST.append([wikiExpansion.group(1), wikiExpansion.group(3)])
   
 CARDNAMEREPLACES = [
   ['{G}', 'Grass'], 
@@ -169,7 +171,7 @@ def tcgDCL(decklist):
 def bulbaParse(message):
   message = message.replace('<','').replace('>','')
   if message == '-help': #not favoured for local
-    return('Use a Bulbapedia link as the parameter.\n-id  <link>        {{TCG ID}}\n-cd  <link>        {{cardlist/entry}}\n-dcl <clipboard>    {{decklist/entry}}')
+    return('Bulbapal 1.0 @ 2023-11-19\nUse a Bulbapedia link as the parameter.\n-id  <link>        {{TCG ID}}\n-cd  <link>        {{cardlist/entry}}\n-dcl <clipboard>    {{decklist/entry}}')
 
   if message.startswith('-id '):
     #-id https://bulbapedia.bulbagarden.net/wiki/Galarian_Farfetch%27d_(Rebel_Clash_94)
