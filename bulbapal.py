@@ -132,7 +132,7 @@ def tcgDCL(decklist):
 
   for line in decklist.split('\n'):
     if(re.match(listEntry, line)):
-      entry = re.search(listEntry, line)      
+      entry = re.search(listEntry, line)
       try: cardExpansion = [expansion[0] for expansion in EXPANSIONLIST if expansion[1] == entry.group(3)][0]
       except: cardExpansion = '?'
       
@@ -141,12 +141,15 @@ def tcgDCL(decklist):
       urlTitle = f'{cardName}_({quote(cardExpansion)}_{cardNum})'.replace('%20', '_')
       cardUrl = f'https://bulbapedia.bulbagarden.net/wiki/{urlTitle}'
       cardUrlRaw = f'https://bulbapedia.bulbagarden.net/w/index.php?title={urlTitle}&action=raw'
-      
+      energyType = ''
+
       wikiResponse = requests.get(cardUrlRaw).text
-      if wikiResponse.startswith('#REDIRECT'):
+      if wikiResponse.upper().startswith('#REDIRECT'):
         urlTitle = quote(re.search(r'\[\[(.+?)\]', wikiResponse).group(1)).replace('%20', '_')
         cardUrlRaw = f'https://bulbapedia.bulbagarden.net/w/index.php?title={urlTitle}&action=raw'
         wikiResponse = requests.get(cardUrlRaw).text
+      elif wikiResponse.find('<title>Just a moment...</title>') != -1:
+        print('Request got caught in Bulbapedia\'s spam detection.')
       
       if wikiResponse != '' and wikiResponse.find('<title>Bad title - ') == -1:
         try: cardType = re.search(r'\|subclass=(.+?)(\n|\|)' , wikiResponse).group(1)
@@ -171,7 +174,7 @@ def tcgDCL(decklist):
 def bulbaParse(message):
   message = message.replace('<','').replace('>','')
   if message == '-help': #not favoured for local
-    return('Bulbapal 1.0 @ 2023-11-19\nUse a Bulbapedia link as the parameter.\n-id  <link>        {{TCG ID}}\n-cd  <link>        {{cardlist/entry}}\n-dcl <clipboard>    {{decklist/entry}}')
+    return('Bulbapal 1.1 @ 2024-01-14\nUse a Bulbapedia link as the parameter.\n-id  <link>        {{TCG ID}}\n-cd  <link>        {{cardlist/entry}}\n-dcl <clipboard>    {{decklist/entry}}')
 
   if message.startswith('-id '):
     #-id https://bulbapedia.bulbagarden.net/wiki/Galarian_Farfetch%27d_(Rebel_Clash_94)
