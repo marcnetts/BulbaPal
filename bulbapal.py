@@ -141,7 +141,7 @@ def tcgDCL(decklist):
     if(re.match(listEntry, line)):
       entry = re.search(listEntry, line)
       try: cardExpansion = [expansion[0] for expansion in EXPANSIONLIST if expansion[1] == entry.group(3)][0]
-      except: cardExpansion = '?'
+      except: cardExpansion = entry.group(3)
       
       cardName = quote(replace_all_array(entry.group(2), CARDNAMEREPLACES))
       cardNum = entry.group(4)
@@ -178,7 +178,8 @@ def tcgDCL(decklist):
       unsortedCardData.append([len(CARDTYPEORDER) if cardType not in CARDTYPEORDER else CARDTYPEORDER.index(cardType), 0 if '[' in cardTcgId else 1, cardName, cardExpansion, cardNum])
 
   if formattedList is not None:
-    formattedList = '\n'.join([x for _, x in sorted(zip(unsortedCardData, formattedList.split('\n')))]) # sorting
+    formattedList = formattedList.strip('\n')
+    # formattedList = '\n'.join([x for _, x in sorted(zip(unsortedCardData, formattedList.split('\n')))]) # sorting
     return('{{decklist/header}}\n' + formattedList + '\n{{decklist/footer}}')
 
 def bulbaParse(message):
