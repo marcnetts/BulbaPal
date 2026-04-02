@@ -51,16 +51,17 @@ def replace_all_array(text, array):
     text = text.replace(i[0], i[1])
   return text
 
-def beastFind(cardname):
+def beastFind(cardname: str):
   for beast in ['Nihilego','Buzzwole','Pheromosa','Xurkitree','Celesteela','Kartana','Guzzlord','Poipole','Naganadel','Stakataka','Blacephalon','Dusk Mane Necrozma','Dawn Wings Necrozma','Ultra Necrozma']:
     if cardname.find(beast) != -1:
       return True
   return False
 
-def tcgReglink(cardname):
+def tcgReglink(cardname: str):
   return '[[' + cardname + '|' + cardname[:cardname.find('(')-1] + ']]'
 
-def tcgID(bulbaUrl):
+
+def tcgID(bulbaUrl: str):
   bulbaUrl = unquote(bulbaUrl.replace('https://bulbapedia.bulbagarden.net/wiki/','')).replace('_',' ')
   #-id https://bulbapedia.bulbagarden.net/wiki/Galarian_Farfetch%27d_(Rebel_Clash_94)
 
@@ -83,15 +84,21 @@ def tcgID(bulbaUrl):
   cardNum = bulbaUrl[bulbaUrl.rindex(' ')+1:bulbaUrl.rindex(')')]
   return f'{{{{TCG ID|{cardSet}|{cardMon}|{cardNum}}}}}'
 
-def tcgCD(bulbaUrl):
+def tcgCDLazy(bulbaUrl: str):
+  cardSet = bulbaUrl[bulbaUrl.find('(')+1:bulbaUrl.rindex('_')].replace('_', ' ')
+  cardNum = bulbaUrl[bulbaUrl.rindex('_')+1:bulbaUrl.rindex(')')]
+  print(tcgID(bulbaUrl))
+  return f'{{{{cardlist/entry|cardname={tcgID(bulbaUrl)}|type=?|enset={cardSet}|ennum={cardNum}|jpset={cardSet}|jpnum={cardNum}}}}}'
+
+def tcgCD(bulbaUrl: str):
   if bulbaUrl.find('bulbagarden') == -1:
     return('Not a Bulbapedia link.')
   else:
     try:
       wikiResponse = requests.get(bulbaUrl.replace('/wiki/','/w/index.php?title=').replace('&action=raw','')+'&action=raw')
-    except: raise
-    if (wikiResponse.status_code != 200):
-      return('Invalid link.')
+    except: pass
+    #if (wikiResponse.status_code != 200):
+    #  return('Invalid link.')
     else:
       try:
         boxIndex = wikiResponse.text.index('ardInfobox/Expansion')
@@ -149,13 +156,16 @@ def tcgDCL(decklist):
         cardUrlRaw = f'https://bulbapedia.bulbagarden.net/w/index.php?title={urlTitle}&action=raw'
         wikiResponse = requests.get(cardUrlRaw).text
       elif wikiResponse.find('<title>Just a moment...</title>') != -1:
-        print('Request got caught in Bulbapedia\'s spam detection.')
+        print('Request got caught in Bulbapedia\'s spam prevention.')
       
       if wikiResponse != '' and wikiResponse.find('<title>Bad title - ') == -1:
         try: cardType = re.search(r'\|subclass=(.+?)(\n|\|)' , wikiResponse).group(1)
-        except: cardType = re.search(r'\|type=(.+?)(\n|\|)' , wikiResponse).group(1)
-        cardRarity = re.search(r'expansion={{TCG\|' + cardExpansion + r'}}.+?{{rar\|(.+?)}}\|cardno=0*?' + cardNum + r'(\/|\|)', wikiResponse).group(1)
-        
+        except:
+          try: cardType = re.search(r'\|type=(.+?)(\n|\|)' , wikiResponse).group(1)
+          except: cardType = '?'
+        try: cardRarity = re.search(r'expansion={{TCG\|' + cardExpansion + r'}}.+?{{rar\|(.+?)}}\|cardno=0*?' + cardNum + r'(\/|\|)', wikiResponse).group(1)
+        except: cardRarity = '?'
+
         if wikiResponse.find('TCGEnergyCardInfobox') != -1:
           energyType = cardType
           cardType = 'Energy'
@@ -185,8 +195,9 @@ def bulbaParse(message):
 
   elif message.startswith('-cd '):
     try:
-      return(tcgCD(message[4:]))
+      return(tcgCDLazy(message[4:]))
     except:
+      raise
       return('💥')
   
   elif message.startswith('-dcl'):
@@ -194,6 +205,7 @@ def bulbaParse(message):
       clipboard = pyperclip.paste()
       return(tcgDCL(clipboard))
     except Exception as e:
-      print(e)
+      raise
+      # print(e)
     # except:
     #   return('💥')
